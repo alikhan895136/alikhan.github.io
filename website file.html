@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopMall - Earn & Shop</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
+  .page { display: none; min-height: 100vh; padding-bottom: 85px; }
+  .page.active { display: block; }
+
+  /* HEADER */
+  .header-blue { background: linear-gradient(135deg, #1a56db 0%, #3b82f6 60%, #60a5fa 100%); padding: 20px 16px 28px; color: #fff; }
+  .header-blue .welcome { font-size: 20px; font-weight: 700; }
+
+  /* NAV GRID */
+  .nav-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 14px 12px 10px; background: #fff; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 6px 10px; border-radius: 14px; border: 1px solid #f0f0f0; cursor: pointer; transition: all 0.2s; background: #fff; }
+  .nav-item:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(59,130,246,0.13); }
+  .nav-item .icon-wrap { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .nav-item span { font-size: 12px; color: #555; font-weight: 500; }
+
+  /* SLIDER */
+  .banner-area { margin: 12px; border-radius: 16px; overflow: hidden; position: relative; height: 170px; }
+  .slide { display: none; width: 100%; height: 170px; border-radius: 16px; overflow: hidden; position: relative; }
+  .slide.active { display: flex; align-items: center; }
+  .slide-bg { position: absolute; inset: 0; }
+  .slide-content { position: relative; z-index: 1; padding: 20px; color: #fff; }
+  .slide-content h3 { font-size: 22px; font-weight: 800; line-height: 1.2; }
+  .slide-content p { font-size: 13px; opacity: 0.9; margin-top: 6px; }
+  .slide-dots { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 2; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.2s; }
+  .dot.active { background: #fff; width: 20px; border-radius: 4px; }
+  .slide-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.25); color: #fff; border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 18px; cursor: pointer; z-index: 2; }
+  .slide-arrow.left { left: 8px; }
+  .slide-arrow.right { right: 8px; }
+
+  /* SECTION */
+  .section { padding: 0 12px 12px; }
+  .section-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 0 10px; }
+  .section-header h3 { font-size: 16px; font-weight: 700; }
+  .section-header a { font-size: 13px; color: #16a34a; font-weight: 600; cursor: pointer; }
+
+  /* VIP HOME CARDS */
+  .vip-home-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+  .vhc { border-radius: 14px; overflow: hidden; cursor: pointer; transition: transform 0.2s; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+  .vhc:hover { transform: translateY(-3px); }
+  .vhc-top { padding: 10px 12px 8px; color: #fff; }
+  .vhc-top .vtag { font-size: 10px; background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 20px; display: inline-block; margin-bottom: 4px; font-weight: 600; }
+  .vhc-top .vp { font-size: 22px; font-weight: 800; }
+  .vhc-top .vpl { font-size: 10px; opacity: 0.85; }
+  .vhc-body { background: #fff; padding: 10px 12px; }
+  .vhc-body .vn { font-size: 12px; font-weight: 700; }
+  .vhc-body .vm { font-size: 11px; color: #888; margin-top: 2px; }
+
+  /* STATS */
+  .stats-4 { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
+  .stat-box { border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 12px; }
+  .stat-box .si { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .stat-box .sv { font-size: 11px; color: #888; }
+  .stat-box .svv { font-size: 18px; font-weight: 700; }
+
+  /* BOTTOM NAV */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #eee; display: grid; grid-template-columns: repeat(5,1fr); padding: 8px 0 12px; z-index: 100; box-shadow: 0 -4px 20px rgba(0,0,0,0.07); }
+  .bnav { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; color: #aaa; cursor: pointer; padding: 2px; transition: color 0.2s; }
+  .bnav .bi { font-size: 22px; }
+  .bnav.active { color: #7c3aed; }
+
+  /* PROFILE */
+  .profile-header { background: linear-gradient(135deg, #1a56db 0%, #3b82f6 100%); padding: 24px 16px 40px; color: #fff; position: relative; }
+  .p-avatar { width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; border: 3px solid rgba(255,255,255,0.4); margin-bottom: 10px; }
+  .p-name { font-size: 20px; font-weight: 700; }
+  .p-code { background: rgba(255,255,255,0.2); padding: 3px 12px; border-radius: 20px; font-size: 12px; display: inline-block; margin: 6px 0; }
+  .p-credit { color: #fde68a; font-size: 13px; font-weight: 600; }
+  .p-bal-badge { position: absolute; top: 24px; right: 16px; background: #dc2626; color: #fff; padding: 6px 14px; border-radius: 10px; font-weight: 700; font-size: 15px; }
+  .profile-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin: -20px 12px 0; }
+  .pcard { background: #fff; border-radius: 16px; padding: 14px 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .pcard .pc-icon { font-size: 20px; margin-bottom: 6px; }
+  .pcard .pc-label { font-size: 10px; color: #888; }
+  .pcard .pc-val { font-size: 16px; font-weight: 700; margin-top: 2px; }
+  .invite-banner { margin: 16px 12px 12px; border-radius: 16px; background: linear-gradient(135deg, #7c3aed, #db2777); padding: 20px; color: #fff; display: flex; justify-content: space-between; align-items: center; }
+  .invite-banner h3 { font-size: 17px; font-weight: 700; }
+  .invite-banner p { font-size: 12px; opacity: 0.85; margin: 4px 0 12px; }
+  .invite-btn { background: #fff; color: #7c3aed; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 700; font-size: 13px; cursor: pointer; }
+  .menu-list { margin: 0 12px 12px; background: #fff; border-radius: 16px; overflow: hidden; }
+  .menu-item { display: flex; align-items: center; gap: 12px; padding: 16px; border-bottom: 1px solid #f5f5f5; cursor: pointer; transition: background 0.15s; }
+  .menu-item:last-child { border-bottom: none; }
+  .menu-item:hover { background: #f9f9ff; }
+  .mi-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .mi-label { flex: 1; font-size: 14px; font-weight: 500; }
+  .mi-arrow { color: #ccc; font-size: 20px; }
+  .logout-btn { margin: 0 12px 16px; background: #fff0f0; border: none; width: calc(100% - 24px); padding: 16px; border-radius: 14px; color: #dc2626; font-size: 15px; font-weight: 700; cursor: pointer; display: block; }
+
+  /* SERVICES */
+  .services-header { background: linear-gradient(135deg, #1a56db 0%, #3b82f6 100%); padding: 24px 16px; color: #fff; }
+  .services-header h2 { font-size: 20px; font-weight: 700; }
+  .services-header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+  .tg-card { margin: 16px 12px; background: #fff; border-radius: 16px; padding: 20px; text-align: center; }
+  .tg-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+  .tg-btn { background: #1a56db; color: #fff; border: none; width: 100%; padding: 16px; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .tg-sub { font-size: 12px; color: #888; margin-top: 10px; }
+  .feat-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin: 0 12px 14px; }
+  .feat-card { background: #fff; border-radius: 14px; padding: 16px; display: flex; align-items: center; gap: 12px; }
+  .feat-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .feat-card h4 { font-size: 13px; font-weight: 700; }
+  .feat-card p { font-size: 11px; color: #888; margin-top: 2px; }
+  .faq-card { margin: 0 12px 16px; background: #fff; border-radius: 16px; padding: 20px; }
+  .faq-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 12px 0; cursor: pointer; }
+  .faq-item:last-child { border-bottom: none; }
+  .faq-q { font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; }
+  .faq-a { font-size: 12px; color: #666; margin-top: 8px; display: none; line-height: 1.6; }
+  .faq-item.open .faq-a { display: block; }
+
+  /* ORDERS */
+  .orders-header { background: linear-gradient(135deg, #1a56db 0%, #3b82f6 100%); padding: 24px 16px; color: #fff; text-align: center; }
+  .orders-header h2 { font-size: 20px; font-weight: 700; }
+  .orders-header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+  .user-vip-bar { margin: 14px 12px; background: #fff; border-radius: 14px; padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+  .uvb h4 { font-size: 15px; font-weight: 700; }
+  .uvb p { font-size: 12px; color: #888; }
+  .vip-badge { background: #7c3aed; color: #fff; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; }
+  .vip-section-label { padding: 4px 12px 10px; font-size: 16px; font-weight: 700; }
+  .vip-full-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; padding: 0 12px 16px; }
+  .vfc { border-radius: 16px; overflow: hidden; box-shadow: 0 3px 14px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; }
+  .vfc:hover { transform: translateY(-3px); }
+  .vfc-top { padding: 10px; color: #fff; display: flex; justify-content: space-between; align-items: flex-start; }
+  .vfc-top .vtag { font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.25); padding: 3px 8px; border-radius: 20px; }
+  .vfc-top .vpr small { font-size: 9px; display: block; opacity: 0.85; }
+  .vfc-top .vpr big { font-size: 18px; font-weight: 800; }
+  .vfc-body { background: #fff; padding: 12px 10px; }
+  .vfc-logo { font-size: 26px; text-align: center; margin-bottom: 4px; }
+  .vfc-name { font-size: 12px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+  .vfc-row { display: flex; justify-content: space-between; font-size: 10px; color: #666; padding: 3px 0; border-bottom: 1px solid #f5f5f5; }
+  .vfc-row:last-of-type { border-bottom: none; }
+  .vfc-row .rv { font-weight: 700; color: #1a1a2e; }
+  .vfc-row .rr { font-weight: 700; color: #dc2626; }
+  .lock-btn { width: 100%; padding: 9px; background: #e5e7eb; color: #888; border: none; border-radius: 10px; font-size: 12px; font-weight: 600; margin-top: 8px; cursor: not-allowed; }
+  .lock-msg { font-size: 9px; color: #dc2626; text-align: center; margin-top: 5px; }
+  .how-works { margin: 0 12px 16px; background: #eff6ff; border-radius: 16px; padding: 16px; }
+  .how-works h3 { font-size: 14px; font-weight: 700; color: #1a56db; margin-bottom: 10px; }
+  .how-works li { font-size: 12px; color: #1a56db; margin-bottom: 5px; list-style: disc; margin-left: 16px; line-height: 1.5; }
+
+  /* HISTORY */
+  .history-header { background: linear-gradient(135deg, #7c3aed, #a855f7); padding: 24px 16px; color: #fff; display: flex; justify-content: space-between; align-items: flex-start; }
+  .history-header h2 { font-size: 20px; font-weight: 700; }
+  .history-header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+  .total-badge { background: rgba(255,255,255,0.2); color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .history-stats { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin: 14px 12px; }
+  .hstat { background: #fff; border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 12px; }
+  .hstat-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .hstat-info .hl { font-size: 11px; color: #888; }
+  .hstat-info .hv { font-size: 18px; font-weight: 700; }
+  .empty-state { background: #fff; margin: 0 12px; border-radius: 16px; padding: 40px 20px; text-align: center; }
+  .empty-icon { width: 70px; height: 70px; background: #f0fdf4; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 14px; }
+  .empty-state h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .empty-state p { font-size: 13px; color: #888; margin-bottom: 18px; }
+  .go-orders-btn { background: #7c3aed; color: #fff; border: none; padding: 12px 28px; border-radius: 24px; font-size: 14px; font-weight: 700; cursor: pointer; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: flex-end; }
+  .modal-overlay.open { display: flex; }
+  .modal-sheet { background: #fff; border-radius: 24px 24px 0 0; padding: 24px 20px 36px; width: 100%; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .modal-header h3 { font-size: 18px; font-weight: 700; }
+  .modal-close { background: #f5f5f5; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; cursor: pointer; }
+  .modal-input { width: 100%; padding: 14px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 15px; margin-bottom: 14px; outline: none; transition: border 0.2s; }
+  .modal-input:focus { border-color: #1a56db; }
+  .modal-label { font-size: 13px; color: #666; margin-bottom: 6px; display: block; font-weight: 500; }
+  .modal-submit { width: 100%; padding: 16px; background: linear-gradient(135deg, #1a56db, #3b82f6); color: #fff; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 4px; }
+  .modal-note { font-size: 12px; color: #888; text-align: center; margin-top: 10px; }
+
+  /* TOAST */
+  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #fff; padding: 12px 24px; border-radius: 24px; font-size: 14px; font-weight: 600; z-index: 300; display: none; }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- ===== HOME ===== -->
+<div class="page active" id="page-home">
+  <div class="header-blue">
+    <p style="font-size:13px;opacity:0.8;">Hi Welcome 👋</p>
+    <div class="welcome">admin</div>
+  </div>
+  <div class="nav-grid">
+    <div class="nav-item" onclick="openModal('deposit')">
+      <div class="icon-wrap" style="background:#eff6ff;">💳</div>
+      <span>Deposit</span>
+    </div>
+    <div class="nav-item" onclick="openModal('withdraw')">
+      <div class="icon-wrap" style="background:#fefce8;">💰</div>
+      <span>Withdraw</span>
+    </div>
+    <div class="nav-item" onclick="showPage('services')">
+      <div class="icon-wrap" style="background:#f0fdf4;">ℹ️</div>
+      <span>About Us</span>
+    </div>
+    <div class="nav-item" onclick="showToast('🎁 Invite link copied!')">
+      <div class="icon-wrap" style="background:#fdf4ff;">🎁</div>
+      <span>Invite Friends</span>
+    </div>
+  </div>
+
+  <div class="banner-area">
+    <div class="slide active">
+      <div class="slide-bg" style="background:linear-gradient(135deg,#0f4c9e,#06b6d4);"></div>
+      <div class="slide-content"><h3>Discover hidden<br>treasures</h3><p>Game-changers to make life easier</p></div>
+    </div>
+    <div class="slide">
+      <div class="slide-bg" style="background:linear-gradient(135deg,#7c3aed,#db2777);"></div>
+      <div class="slide-content"><h3>Earn up to<br>12% Daily</h3><p>Join VIP plans and maximize profits</p></div>
+    </div>
+    <div class="slide">
+      <div class="slide-bg" style="background:linear-gradient(135deg,#d97706,#ef4444);"></div>
+      <div class="slide-content"><h3>Invite &amp;<br>Earn More</h3><p>Refer friends and get bonus rewards</p></div>
+    </div>
+    <button class="slide-arrow left" onclick="changeSlide(-1)">&#8249;</button>
+    <button class="slide-arrow right" onclick="changeSlide(1)">&#8250;</button>
+    <div class="slide-dots">
+      <div class="dot active" onclick="goSlide(0)"></div>
+      <div class="dot" onclick="goSlide(1)"></div>
+      <div class="dot" onclick="goSlide(2)"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <h3>VIP Plans</h3>
+      <a onclick="showPage('orders')">Earn Profits</a>
+    </div>
+    <div class="vip-home-cards">
+      <div class="vhc" onclick="showPage('orders')">
+        <div class="vhc-top" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
+          <div class="vtag">VIP 1</div><div class="vp">4%</div><div class="vpl">Daily Profit</div>
+        </div>
+        <div class="vhc-body"><div class="vn">Amazon</div><div class="vm">Min: $30</div></div>
+      </div>
+      <div class="vhc" onclick="showPage('orders')">
+        <div class="vhc-top" style="background:linear-gradient(135deg,#ef4444,#dc2626);">
+          <div class="vtag">VIP 2</div><div class="vp">8%</div><div class="vpl">Daily Profit</div>
+        </div>
+        <div class="vhc-body"><div class="vn">Alibaba</div><div class="vm">Min: $499</div></div>
+      </div>
+      <div class="vhc" onclick="showPage('orders')">
+        <div class="vhc-top" style="background:linear-gradient(135deg,#ec4899,#db2777);">
+          <div class="vtag">VIP 3</div><div class="vp">12%</div><div class="vpl">Daily Profit</div>
+        </div>
+        <div class="vhc-body"><div class="vn">AliExpress</div><div class="vm">Min: $900</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="stats-4">
+      <div class="stat-box" style="background:linear-gradient(135deg,#fdf2f8,#fce7f3);">
+        <div class="si" style="background:#fce7f3;">💵</div>
+        <div><div class="sv">Total Paid</div><div class="svv" style="color:#db2777;">$2.5M+</div></div>
+      </div>
+      <div class="stat-box" style="background:linear-gradient(135deg,#eff6ff,#dbeafe);">
+        <div class="si" style="background:#dbeafe;">👥</div>
+        <div><div class="sv">Active Users</div><div class="svv" style="color:#1a56db;">15K+</div></div>
+      </div>
+      <div class="stat-box" style="background:linear-gradient(135deg,#fefce8,#fef9c3);">
+        <div class="si" style="background:#fef9c3;">⭐</div>
+        <div><div class="sv">Success Rate</div><div class="svv" style="color:#d97706;">98%</div></div>
+      </div>
+      <div class="stat-box" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);">
+        <div class="si" style="background:#dcfce7;">🕐</div>
+        <div><div class="sv">Support</div><div class="svv" style="color:#16a34a;">24/7</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HISTORY ===== -->
+<div class="page" id="page-history">
+  <div class="history-header">
+    <div><h2>Completed Orders</h2><p>Your completed orders history</p></div>
+    <div class="total-badge">Total: 0 Orders</div>
+  </div>
+  <div class="history-stats">
+    <div class="hstat">
+      <div class="hstat-icon" style="background:#eff6ff;">✅</div>
+      <div class="hstat-info"><div class="hl">Total Completed</div><div class="hv">0</div></div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-icon" style="background:#f0fdf4;">💵</div>
+      <div class="hstat-info"><div class="hl">Today Profit</div><div class="hv" style="color:#16a34a;">$0.00</div></div>
+    </div>
+  </div>
+  <div class="empty-state">
+    <div class="empty-icon">📋</div>
+    <h3>No completed orders</h3>
+    <p>Your completed orders will appear here</p>
+    <button class="go-orders-btn" onclick="showPage('orders')">Go to Orders</button>
+  </div>
+</div>
+
+<!-- ===== ORDERS ===== -->
+<div class="page" id="page-orders">
+  <div class="orders-header">
+    <h2>VIP Services</h2>
+    <p>Upgrade your VIP level to earn more profits</p>
+  </div>
+  <div class="user-vip-bar">
+    <div class="uvb"><h4>admin</h4><p>Current Balance: $0.00</p></div>
+    <div class="vip-badge">VIP 0</div>
+  </div>
+  <div class="vip-section-label">Available VIP Plans</div>
+  <div class="vip-full-cards">
+    <div class="vfc">
+      <div class="vfc-top" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
+        <span class="vtag">VIP 1</span>
+        <div class="vpr"><small>Profit</small><big>4%</big></div>
+      </div>
+      <div class="vfc-body">
+        <div class="vfc-logo">🛒</div>
+        <div class="vfc-name">Amazon</div>
+        <div class="vfc-row"><span>Min Balance</span><span class="rv">$30.00</span></div>
+        <div class="vfc-row"><span>Your Balance</span><span class="rr">$0.00</span></div>
+        <button class="lock-btn">🔒 Locked</button>
+        <div class="lock-msg">Need $30.00 more to unlock</div>
+      </div>
+    </div>
+    <div class="vfc">
+      <div class="vfc-top" style="background:linear-gradient(135deg,#ef4444,#dc2626);">
+        <span class="vtag">VIP 2</span>
+        <div class="vpr"><small>Profit</small><big>8%</big></div>
+      </div>
+      <div class="vfc-body">
+        <div class="vfc-logo">🏬</div>
+        <div class="vfc-name">Alibaba</div>
+        <div class="vfc-row"><span>Min Balance</span><span class="rv">$499.00</span></div>
+        <div class="vfc-row"><span>Your Balance</span><span class="rr">$0.00</span></div>
+        <button class="lock-btn">🔒 Locked</button>
+        <div class="lock-msg">Need $499.00 more</div>
+      </div>
+    </div>
+    <div class="vfc">
+      <div class="vfc-top" style="background:linear-gradient(135deg,#ec4899,#db2777);">
+        <span class="vtag">VIP 3</span>
+        <div class="vpr"><small>Profit</small><big>12%</big></div>
+      </div>
+      <div class="vfc-body">
+        <div class="vfc-logo">🌐</div>
+        <div class="vfc-name">AliExpress</div>
+        <div class="vfc-row"><span>Min Balance</span><span class="rv">$900.00</span></div>
+        <div class="vfc-row"><span>Your Balance</span><span class="rr">$0.00</span></div>
+        <button class="lock-btn">🔒 Locked</button>
+        <div class="lock-msg">Need $900.00 more</div>
+      </div>
+    </div>
+  </div>
+  <div class="how-works">
+    <h3>How VIP Levels Work</h3>
+    <ul>
+      <li>VIP 1: Available when you have $30 or more in your balance</li>
+      <li>VIP 2: Available when you have $499 or more in your balance</li>
+      <li>VIP 3: Available when you have $900 or more in your balance</li>
+      <li>Higher VIP levels give you better profit percentages</li>
+      <li>Your VIP level automatically upgrades when balance is reached</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== SERVICES ===== -->
+<div class="page" id="page-services">
+  <div class="services-header">
+    <h2>Online Customer Services</h2>
+    <p>24/7 Support Available</p>
+  </div>
+  <p style="text-align:center;font-size:13px;color:#666;padding:16px 20px 0;">Get instant support from our team. We're here to help you 24/7.</p>
+  <div class="tg-card">
+    <h3>Contact Us on Telegram</h3>
+    <button class="tg-btn" onclick="showToast('Opening Telegram support...')">✈️ Join Our Telegram Support</button>
+    <p class="tg-sub">Click above to connect with our support team instantly</p>
+  </div>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#f0fdf4;">⚡</div>
+      <div><h4>Fast Response</h4><p>Replies within 5 minutes</p></div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#eff6ff;">👥</div>
+      <div><h4>24/7 Support</h4><p>Available round the clock</p></div>
+    </div>
+  </div>
+  <div class="faq-card">
+    <h3>Frequently Asked Questions</h3>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">How quickly will I get a response? <span>+</span></div>
+      <div class="faq-a">Our support team typically responds within 5-10 minutes during business hours.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">What issues can you help with? <span>+</span></div>
+      <div class="faq-a">We can assist with account issues, transactions, technical problems, and general inquiries.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Is support available in multiple languages? <span>+</span></div>
+      <div class="faq-a">Yes, we provide support in English, Urdu, Arabic, and several other languages.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">How do I deposit money? <span>+</span></div>
+      <div class="faq-a">Go to Profile, then tap Deposit. Choose your payment method, enter the amount and submit. Your balance updates after admin approval.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PROFILE ===== -->
+<div class="page" id="page-profile">
+  <div class="profile-header">
+    <div class="p-avatar">A</div>
+    <div class="p-name">admin</div>
+    <div class="p-code">Code: 123456</div>
+    <div class="p-credit">Credit Reputation: 100%</div>
+    <div class="p-bal-badge">$0.00</div>
+  </div>
+  <div class="profile-cards">
+    <div class="pcard" style="background:#f0f8ff;">
+      <div class="pc-icon">💵</div>
+      <div class="pc-label">Today Profit</div>
+      <div class="pc-val">$0.00</div>
+    </div>
+    <div class="pcard" style="background:#f0fff4;">
+      <div class="pc-icon">💳</div>
+      <div class="pc-label">Total Balance</div>
+      <div class="pc-val" style="color:#dc2626;">$0.00</div>
+    </div>
+    <div class="pcard" style="background:#fff5f5;">
+      <div class="pc-icon">📦</div>
+      <div class="pc-label">Orders</div>
+      <div class="pc-val">(25/0)</div>
+    </div>
+  </div>
+  <div class="invite-banner">
+    <div>
+      <h3>Invite Friends</h3>
+      <p>Invite friends to get rewards</p>
+      <button class="invite-btn" onclick="showToast('🎁 Invite link copied!')">Invite Now</button>
+    </div>
+    <div style="font-size:48px;">🎁</div>
+  </div>
+  <div class="menu-list">
+    <div class="menu-item" onclick="openModal('deposit')">
+      <div class="mi-icon" style="background:#eff6ff;">💳</div>
+      <span class="mi-label">Deposit</span>
+      <span class="mi-arrow">›</span>
+    </div>
+    <div class="menu-item" onclick="openModal('withdraw')">
+      <div class="mi-icon" style="background:#fefce8;">💰</div>
+      <span class="mi-label">Withdraw</span>
+      <span class="mi-arrow">›</span>
+    </div>
+    <div class="menu-item" onclick="showToast('Withdrawal Account settings')">
+      <div class="mi-icon" style="background:#f0fdf4;">🏦</div>
+      <span class="mi-label">Withdrawal Account</span>
+      <span class="mi-arrow">›</span>
+    </div>
+    <div class="menu-item" onclick="showPage('services')">
+      <div class="mi-icon" style="background:#fdf4ff;">ℹ️</div>
+      <span class="mi-label">About Us</span>
+      <span class="mi-arrow">›</span>
+    </div>
+  </div>
+  <button class="logout-btn" onclick="showToast('Logging out...')">Log Out</button>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="bnav active" id="bnav-home" onclick="showPage('home')">
+    <span class="bi">🏠</span><span>Home</span>
+  </div>
+  <div class="bnav" id="bnav-history" onclick="showPage('history')">
+    <span class="bi">🕐</span><span>History</span>
+  </div>
+  <div class="bnav" id="bnav-orders" onclick="showPage('orders')">
+    <span class="bi">📋</span><span>Start/Orders</span>
+  </div>
+  <div class="bnav" id="bnav-services" onclick="showPage('services')">
+    <span class="bi">🗂️</span><span>Services</span>
+  </div>
+  <div class="bnav" id="bnav-profile" onclick="showPage('profile')">
+    <span class="bi">👤</span><span>My Profile</span>
+  </div>
+</nav>
+
+<!-- DEPOSIT MODAL -->
+<div class="modal-overlay" id="modal-deposit">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h3>💳 Deposit Funds</h3>
+      <button class="modal-close" onclick="closeModal('deposit')">✕</button>
+    </div>
+    <label class="modal-label">Enter Amount (USD)</label>
+    <input class="modal-input" type="number" placeholder="e.g. 100" id="deposit-amount">
+    <label class="modal-label">Payment Method</label>
+    <select class="modal-input" style="cursor:pointer;">
+      <option>USDT (TRC20)</option>
+      <option>Bank Transfer</option>
+      <option>EasyPaisa</option>
+      <option>JazzCash</option>
+    </select>
+    <button class="modal-submit" onclick="submitDeposit()">Submit Deposit Request</button>
+    <p class="modal-note">Your balance will be updated after admin approval</p>
+  </div>
+</div>
+
+<!-- WITHDRAW MODAL -->
+<div class="modal-overlay" id="modal-withdraw">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h3>💰 Withdraw Funds</h3>
+      <button class="modal-close" onclick="closeModal('withdraw')">✕</button>
+    </div>
+    <label class="modal-label">Enter Amount (USD)</label>
+    <input class="modal-input" type="number" placeholder="e.g. 50" id="withdraw-amount">
+    <label class="modal-label">Withdrawal Account</label>
+    <input class="modal-input" type="text" placeholder="Enter your account number">
+    <button class="modal-submit" style="background:linear-gradient(135deg,#d97706,#f59e0b);" onclick="submitWithdraw()">Submit Withdrawal</button>
+    <p class="modal-note">Withdrawals processed within 24 hours</p>
+  </div>
+</div>
+
+<script>
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.bnav').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    const bn = document.getElementById('bnav-' + name);
+    if (bn) bn.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  let currentSlide = 0;
+  const slides = document.querySelectorAll('.slide');
+  const dots = document.querySelectorAll('.dot');
+  function goSlide(n) {
+    slides[currentSlide].classList.remove('active');
+    dots[currentSlide].classList.remove('active');
+    currentSlide = (n + slides.length) % slides.length;
+    slides[currentSlide].classList.add('active');
+    dots[currentSlide].classList.add('active');
+  }
+  function changeSlide(dir) { goSlide(currentSlide + dir); }
+  setInterval(() => changeSlide(1), 3500);
+
+  function openModal(type) { document.getElementById('modal-' + type).classList.add('open'); }
+  function closeModal(type) { document.getElementById('modal-' + type).classList.remove('open'); }
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+  });
+
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.style.display = 'none'; }, 2500);
+  }
+
+  function submitDeposit() {
+    const amt = document.getElementById('deposit-amount').value;
+    if (!amt || amt <= 0) { showToast('❌ Please enter a valid amount'); return; }
+    closeModal('deposit');
+    showToast('✅ Deposit request submitted: $' + parseFloat(amt).toFixed(2));
+  }
+  function submitWithdraw() {
+    const amt = document.getElementById('withdraw-amount').value;
+    if (!amt || amt <= 0) { showToast('❌ Please enter a valid amount'); return; }
+    closeModal('withdraw');
+    showToast('✅ Withdrawal request sent: $' + parseFloat(amt).toFixed(2));
+  }
+
+  function toggleFaq(el) {
+    el.classList.toggle('open');
+    el.querySelector('.faq-q span').textContent = el.classList.contains('open') ? '−' : '+';
+  }
+</script>
+</body>
+</html>
